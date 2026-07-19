@@ -129,10 +129,6 @@ Set `CHROMIUM_PATH=/path/to/chromium` when Chromium is not on the command path a
 - The page's Content Security Policy blocks remote connections and remote assets.
 - A 100 MB file-size guard and a 200,000-node validation guard reduce accidental browser exhaustion. These are practical safeguards, not a formal security sandbox.
 
-## Next engineering milestone
-
-The strongest next step is a hybrid Canvas/SVG renderer plus a Web Worker for parsing and layout. That would preserve the current interface while scaling to substantially larger trees. Filters, clade collapsing, metadata-table joins, and persistent local sessions can then be layered on the same normalized model.
-
 ## License
 
 Project code is MIT licensed. Vendored D3 modules use the ISC license; see `THIRD_PARTY_NOTICES.md`.
