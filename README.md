@@ -49,7 +49,7 @@ For each shared tip, PhyloLocal:
 
 1. Calculates patristic distances to the other shared tips in each tree. Newick branch lengths or Auspice divergence are used when available; branch depth is the fallback.
 2. Selects the tip's `k` nearest neighbors in each tree.
-3. Calculates the ([Jaccard distance](https://en.wikipedia.org/wiki/Jaccard_index) between the two neighbor sets:
+3. Calculates the [Jaccard distance](https://en.wikipedia.org/wiki/Jaccard_index) between the two neighbor sets:
 
 ```text
 score = 1 - |neighbors A ∩ neighbors B| / |neighbors A ∪ neighbors B|
