@@ -20,6 +20,15 @@ import {
   traitValues,
   validateDataset
 } from "./phylo-core.js";
+import {
+  compareSequences,
+  formatSequenceComparison,
+  indexFastaRecords,
+  parseFasta,
+  sequenceAlphabet,
+  sequenceSummary,
+  translateSequence
+} from "./sequence-core.js";
 
 const AXIS_LABELS = {
   divergence: "Divergence",
@@ -50,16 +59,24 @@ const refs = {
   nodeCount: document.querySelector("#nodeCount"),
   nodeDetails: document.querySelector("#nodeDetails"),
   orderSelect: document.querySelector("#orderSelect"),
+  referenceInput: document.querySelector("#referenceInput"),
   resetButton: document.querySelector("#resetButton"),
   searchField: document.querySelector("#searchField"),
   searchInput: document.querySelector("#searchInput"),
   searchStatus: document.querySelector("#searchStatus"),
+  sequenceCompareMode: document.querySelector("#sequenceCompareMode"),
+  sequenceDetails: document.querySelector("#sequenceDetails"),
+  sequenceFrameSelect: document.querySelector("#sequenceFrameSelect"),
+  sequenceInput: document.querySelector("#sequenceInput"),
+  sequenceReferenceMode: document.querySelector("#sequenceReferenceMode"),
+  sequenceStatus: document.querySelector("#sequenceStatus"),
   statusStrip: document.querySelector("#statusStrip"),
   statusText: document.querySelector("#statusText"),
   tipCount: document.querySelector("#tipCount"),
   treeStage: document.querySelector("#treeStage"),
   treeSvg: document.querySelector("#treeSvg"),
   treeViewport: document.querySelector("#treeViewport"),
+  useSelectedReferenceButton: document.querySelector("#useSelectedReferenceButton"),
   viewSelect: document.querySelector("#viewSelect"),
   zoomInButton: document.querySelector("#zoomInButton"),
   zoomOutButton: document.querySelector("#zoomOutButton")
@@ -87,7 +104,12 @@ const state = {
   viewMode: "rooted",
   currentTransform: zoomIdentity,
   fitAfterRender: true,
-  resizeTimer: null
+  resizeTimer: null,
+  sequenceAlignment: null,
+  referenceSequence: null,
+  sequenceCompareMode: "amino-acid",
+  sequenceFrame: 1,
+  sequenceReferenceMode: "reference"
 };
 
 const zoomBehavior = zoom()
@@ -144,7 +166,117 @@ function updateAxisControls(validation) {
   }
 }
 
+function sequenceRecordForNode(node) {
+  return state.sequenceAlignment?.byName.get(node?.name ?? "") ?? null;
+}
+
+function currentSelectedNode() {
+  return state.model?.nodes.find((node) => node.id === state.selectedId) ?? null;
+}
+
+function comparisonReferenceForNode(node) {
+  if (!state.sequenceAlignment) return null;
+  if (state.sequenceReferenceMode === "parent") return sequenceRecordForNode(node?.parent);
+  if (state.sequenceReferenceMode === "root") return sequenceRecordForNode(state.model?.root);
+  return state.referenceSequence;
+}
+
+function sequenceSummaryText() {
+  if (!state.sequenceAlignment) {
+    return "Load aligned FASTA to compare translated differences locally.";
+  }
+  const matchedTips = state.model ? state.model.leaves.filter((tip) => state.sequenceAlignment.byName.has(tip.name)).length : 0;
+  const pieces = [
+    `${formatCount(state.sequenceAlignment.records.length)} sequence${state.sequenceAlignment.records.length === 1 ? "" : "s"}`,
+    `${formatCount(matchedTips)} tip${matchedTips === 1 ? "" : "s"} matched`
+  ];
+  if (state.sequenceAlignment.alignedLength) pieces.push(`aligned length ${formatCount(state.sequenceAlignment.alignedLength)}`);
+  if (state.sequenceAlignment.warnings.length) pieces.push(`${formatCount(state.sequenceAlignment.warnings.length)} note${state.sequenceAlignment.warnings.length === 1 ? "" : "s"}`);
+  if (state.referenceSequence) pieces.push(`reference ${state.referenceSequence.name}`);
+  return pieces.join(" · ");
+}
+
+function updateSequenceStatus() {
+  refs.sequenceStatus.textContent = sequenceSummaryText();
+}
+
+function renderSequenceDetails(node) {
+  refs.sequenceDetails.replaceChildren();
+  if (!state.sequenceAlignment) {
+    refs.sequenceDetails.append(createElement("p", "muted-copy", "Load an aligned FASTA file to compare sequences against a selectable reference."));
+    return;
+  }
+
+  const selected = node ? sequenceRecordForNode(node) : null;
+  const reference = node ? comparisonReferenceForNode(node) : state.referenceSequence;
+  const compareMode = refs.sequenceCompareMode.value;
+  const frame = Number(refs.sequenceFrameSelect.value) || 1;
+  const summary = createElement("div", "sequence-summary");
+
+  const rows = [];
+  const addRow = (label, value) => {
+    const line = createElement("div", "summary-line");
+    line.append(createElement("span", "summary-label", label), createElement("span", "summary-value", value));
+    rows.push(line);
+  };
+
+  addRow("Alignment", state.sequenceAlignment.sourceName);
+  addRow("Compare mode", compareMode === "amino-acid" ? `Translated amino acids (frame ${frame})` : "Raw sequence");
+  addRow("Reference source", state.sequenceReferenceMode === "reference" ? (state.referenceSequence ? state.referenceSequence.name : "No reference loaded") : state.sequenceReferenceMode === "parent" ? "Parent node" : "Tree root");
+
+  if (selected) {
+    const summaryInfo = sequenceSummary(selected);
+    addRow("Selected sequence", selected.name);
+    addRow("Alphabet", summaryInfo?.alphabet ?? "unknown");
+    addRow("Length", formatCount(summaryInfo?.length ?? 0));
+  } else {
+    addRow("Selected sequence", node ? `No exact sequence match for ${node.name}` : "No node selected");
+  }
+
+  if (reference) {
+    addRow("Comparator", reference.name);
+  } else {
+    addRow("Comparator", state.sequenceReferenceMode === "reference" ? "Missing reference FASTA" : "No matching comparator");
+  }
+
+  let comparison = null;
+  if (selected && reference) {
+    comparison = compareSequences(reference, selected, {mode: compareMode, frame});
+    addRow("Differences", `${formatCount(comparison.differenceCount)} ${comparison.mode === "amino-acid" ? "AA" : "sequence"} change${comparison.differenceCount === 1 ? "" : "s"}`);
+    addRow("Compared length", formatCount(comparison.comparedLength));
+  } else {
+    addRow("Differences", selected ? "Unavailable" : "Select a tip with a matching FASTA record.");
+  }
+
+  summary.append(...rows);
+  refs.sequenceDetails.append(summary);
+
+  if (state.sequenceAlignment.warnings.length) {
+    const warning = createElement("p", "sequence-warning", state.sequenceAlignment.warnings.join(" "));
+    refs.sequenceDetails.append(warning);
+  }
+
+  if (!selected) {
+    refs.sequenceDetails.append(createElement("p", "muted-copy", "Select a node or tip after loading FASTA data to inspect translations and branch differences."));
+    return;
+  }
+
+  if (selected && !reference) {
+    refs.sequenceDetails.append(createElement("p", "sequence-warning", "No comparator sequence was available for the selected reference mode."));
+    return;
+  }
+
+  if (comparison) {
+    const diffList = createElement("ul", "sequence-diff-list");
+    for (const item of formatSequenceComparison(comparison, {limit: 12})) {
+      diffList.append(createElement("li", "sequence-diff-item", item));
+    }
+    refs.sequenceDetails.append(diffList);
+  }
+}
+
 function populateColorControls(dataset, model) {
+
   const previous = state.colorKey;
   state.colorOptions = collectColoringOptions(dataset, model);
   refs.colorSelect.replaceChildren();
@@ -304,6 +436,7 @@ function selectNode(node) {
   state.selectedId = node.id;
   applyInteractiveClasses();
   renderNodeDetails(node);
+  renderSequenceDetails(node);
 }
 
 function renderNodeDetails(node) {
@@ -638,6 +771,83 @@ function renderDatasetSummary() {
   refs.nodeCount.textContent = formatCount(state.model.nodes.length);
 }
 
+function resetSequenceState() {
+  state.sequenceAlignment = null;
+  state.referenceSequence = null;
+  state.sequenceCompareMode = refs.sequenceCompareMode.value;
+  state.sequenceFrame = Number(refs.sequenceFrameSelect.value) || 1;
+  state.sequenceReferenceMode = refs.sequenceReferenceMode.value;
+  updateSequenceStatus();
+  renderSequenceDetails(null);
+}
+
+function sequenceStoreFromText(text, fileName, {referenceOnly = false} = {}) {
+  const parsed = parseFasta(text);
+  const lengths = new Set(parsed.records.map((record) => record.sequence.length));
+  const alignedLength = lengths.size === 1 ? parsed.records[0].sequence.length : null;
+  const byName = indexFastaRecords(parsed.records);
+  const duplicateCount = parsed.records.length - byName.size;
+  const warnings = [...parsed.warnings];
+  if (duplicateCount > 0) warnings.push(`Ignored ${duplicateCount.toLocaleString()} duplicate FASTA header${duplicateCount === 1 ? "" : "s"}; the first match wins.`);
+  if (!alignedLength && parsed.records.length > 1) warnings.push("The FASTA records are not all the same length; amino-acid translation assumes a codon-aware alignment.");
+  const alphabetValues = new Set(parsed.records.map((record) => sequenceAlphabet(record.sequence)));
+  const alphabet = alphabetValues.size === 1 ? [...alphabetValues][0] : "mixed";
+  return {
+    sourceName: fileName,
+    records: parsed.records,
+    byName,
+    warnings,
+    alignedLength,
+    alphabet,
+    referenceOnly
+  };
+}
+
+function loadSequenceAlignmentFromText(text, fileName) {
+  const store = sequenceStoreFromText(text, fileName);
+  state.sequenceAlignment = store;
+  updateSequenceStatus();
+  renderSequenceDetails(currentSelectedNode());
+  exposeTestState();
+  setStatus(`Loaded FASTA alignment ${fileName} locally · ${formatCount(store.records.length)} records.`);
+  if (store.warnings.length) {
+    renderDiagnostics([...(state.validation?.warnings ?? []), ...store.warnings], "warning");
+  }
+}
+
+function loadReferenceSequenceFromText(text, fileName) {
+  const store = sequenceStoreFromText(text, fileName, {referenceOnly: true});
+  if (!store.records.length) throw new Error("The reference FASTA did not contain any sequences.");
+  state.referenceSequence = store.records[0];
+  state.sequenceReferenceMode = "reference";
+  refs.sequenceReferenceMode.value = "reference";
+  updateSequenceStatus();
+  renderSequenceDetails(currentSelectedNode());
+  exposeTestState();
+  const note = store.records.length > 1 ? ` · using the first of ${store.records.length} records` : "";
+  setStatus(`Loaded reference FASTA ${fileName} locally${note}.`);
+  if (store.warnings.length) {
+    renderDiagnostics([...(state.validation?.warnings ?? []), ...store.warnings], "warning");
+  }
+}
+
+function useSelectedSequenceAsReference() {
+  if (!state.sequenceAlignment || !state.model) return;
+  const selected = state.model.nodes.find((node) => node.id === state.selectedId);
+  const record = selected ? sequenceRecordForNode(selected) : null;
+  if (!record) {
+    setStatus("Select a node with a matching FASTA record first.", "error");
+    return;
+  }
+  state.referenceSequence = {...record};
+  state.sequenceReferenceMode = "reference";
+  refs.sequenceReferenceMode.value = "reference";
+  updateSequenceStatus();
+  renderSequenceDetails(selected);
+  exposeTestState();
+  setStatus(`Using ${record.name} as the comparison reference.`);
+}
+
 function exposeTestState() {
   document.body.dataset.appReady = state.model ? "true" : "false";
   window.__PHYLOLOCAL_READY__ = Boolean(state.model);
@@ -652,7 +862,12 @@ function exposeTestState() {
     lastTip: state.model.leaves.at(-1)?.name ?? null,
     colorBy: state.colorKey,
     searchMatches: state.search.count,
-    selectedId: state.selectedId
+    selectedId: state.selectedId,
+    sequenceLoaded: Boolean(state.sequenceAlignment),
+    referenceLoaded: Boolean(state.referenceSequence),
+    sequenceCompareMode: refs.sequenceCompareMode.value,
+    sequenceFrame: Number(refs.sequenceFrameSelect.value) || 1,
+    referenceMode: refs.sequenceReferenceMode.value
   } : null;
 }
 
@@ -686,10 +901,12 @@ function loadDataset(input, fileName = "local-dataset.json", sourceWarnings = []
     refs.searchField.classList.remove("has-query");
     refs.searchStatus.textContent = "Type to highlight matching tips.";
 
+    resetSequenceState();
     updateAxisControls(validation);
     populateColorControls(dataset, model);
     renderDatasetSummary();
     renderNodeDetails(null);
+    renderSequenceDetails(null);
     renderDiagnostics(validation.warnings, "warning");
     renderTree({fit: true});
 
@@ -809,7 +1026,30 @@ function setDropState(active) {
   refs.dropOverlay.hidden = !active;
 }
 
+async function loadSequenceFile(file, kind) {
+  if (!file) return;
+  if (file.size > MAX_FILE_BYTES) {
+    setStatus(`File ${file.name} exceeds the 100 MB safety limit.`, "error");
+    return;
+  }
+  setStatus(`Reading ${file.name} locally…`, "busy");
+  try {
+    const text = await file.text();
+    if (kind === "reference") loadReferenceSequenceFromText(text, file.name);
+    else loadSequenceAlignmentFromText(text, file.name);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    renderDiagnostics([message], "error");
+    setStatus(`Could not read ${file.name}.`, "error");
+  } finally {
+    if (kind === "reference") refs.referenceInput.value = "";
+    else refs.sequenceInput.value = "";
+  }
+}
+
 refs.fileInput.addEventListener("change", () => loadFile(refs.fileInput.files?.[0]));
+refs.sequenceInput.addEventListener("change", () => loadSequenceFile(refs.sequenceInput.files?.[0], "alignment"));
+refs.referenceInput.addEventListener("change", () => loadSequenceFile(refs.referenceInput.files?.[0], "reference"));
 refs.demoButton.addEventListener("click", () => loadDataset(demoDataset, "bundled-demo.json"));
 refs.axisSelect.addEventListener("change", () => renderTree({fit: true}));
 refs.viewSelect.addEventListener("change", () => {
@@ -822,6 +1062,25 @@ refs.orderSelect.addEventListener("change", () => {
   orderTree(state.model, state.orderMode);
   renderTree({fit: true});
 });
+refs.sequenceCompareMode.addEventListener("change", () => {
+  state.sequenceCompareMode = refs.sequenceCompareMode.value;
+  updateSequenceStatus();
+  renderSequenceDetails(currentSelectedNode());
+  exposeTestState();
+});
+refs.sequenceFrameSelect.addEventListener("change", () => {
+  state.sequenceFrame = Number(refs.sequenceFrameSelect.value) || 1;
+  updateSequenceStatus();
+  renderSequenceDetails(currentSelectedNode());
+  exposeTestState();
+});
+refs.sequenceReferenceMode.addEventListener("change", () => {
+  state.sequenceReferenceMode = refs.sequenceReferenceMode.value;
+  updateSequenceStatus();
+  renderSequenceDetails(currentSelectedNode());
+  exposeTestState();
+});
+refs.useSelectedReferenceButton.addEventListener("click", useSelectedSequenceAsReference);
 refs.colorSelect.addEventListener("change", () => {
   state.colorKey = refs.colorSelect.value;
   refreshColorState();

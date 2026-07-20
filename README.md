@@ -2,7 +2,7 @@
 
 ![PhyloLocal logo](assets/phylolocal_logo_modern.jpg)
 
-PhyloLocal is a local-first, browser-based phylogenetic tree viewer for Auspice v2 JSON and Newick datasets. Version 0.4 adds **Reassortment Radar**, an automated two-segment comparison that ranks samples by changes in their local phylogenetic neighborhoods.
+PhyloLocal is a local-first, browser-based phylogenetic tree viewer for Auspice v2 JSON and Newick datasets. Version 0.5 adds a **Sequence Explorer** for local FASTA loading, codon translation, and comparison against a user-selected reference, alongside **Reassortment Radar**, an automated two-segment comparison that ranks samples by changes in their local phylogenetic neighborhoods.
 
 The viewer does not upload data, request remote assets, require an account, or depend on a remote API. A tiny Node server binds only to `127.0.0.1` and serves static files to the browser.
 
@@ -35,6 +35,7 @@ The project is also a static site and can be published directly with GitHub Page
 - Color branches and tips by categorical Auspice metadata.
 - Search tips and highlight their ancestral paths.
 - Inspect tip/internal-node details.
+- Load aligned FASTA locally, translate codons, and compare a selected node against a user-chosen reference or branch parent.
 - Pan, zoom, fit, and export SVG.
 
 ## Reassortment Radar
@@ -49,7 +50,7 @@ For each shared tip, PhyloLocal:
 
 1. Calculates patristic distances to the other shared tips in each tree. Newick branch lengths or Auspice divergence are used when available; branch depth is the fallback.
 2. Selects the tip's `k` nearest neighbors in each tree.
-3. Calculates the [Jaccard distance](https://en.wikipedia.org/wiki/Jaccard_index) between the two neighbor sets:
+3. Calculates the Jaccard distance between the two neighbor sets:
 
 ```text
 score = 1 - |neighbors A ∩ neighbors B| / |neighbors A ∪ neighbors B|
@@ -81,7 +82,7 @@ The viewer accepts a JSON object with `version`, `meta`, and a nested `tree`. Ev
 
 The parser supports branch lengths, scientific notation, internal labels/support values, polytomies, quoted labels, whitespace, and square-bracket comments. Comments are ignored with a visible note. Files without a final semicolon are accepted with a warning.
 
-Newick does not itself provide categorical Auspice metadata. Raw FASTA sequences, NEXUS containers, alignment, tree inference, and ancestral-state reconstruction are outside the current application.
+Newick does not itself provide categorical Auspice metadata. The Sequence Explorer accepts local FASTA files for aligned sequence comparison and codon translation, but it does not perform alignment or tree inference for you. NEXUS containers and ancestral-state reconstruction are outside the current application.
 
 ## Project structure
 
@@ -125,4 +126,3 @@ The optional browser test requires Python Playwright and Chromium. Set `CHROMIUM
 Project code is MIT licensed. Vendored D3 modules use the ISC license; see `THIRD_PARTY_NOTICES.md`.
 
 Matched-sample search selects and highlights shared samples independently of the candidate threshold.
-

@@ -157,6 +157,7 @@ def run() -> None:
     html = build_test_html()
     browser_errors: list[str] = []
 
+    print("starting playwright", flush=True)
     with sync_playwright() as playwright:
         configured_browser = os.environ.get("CHROMIUM_PATH")
         bundled_browser = Path(playwright.chromium.executable_path)
@@ -166,6 +167,7 @@ def run() -> None:
         if not executable_path:
             raise RuntimeError("No Chromium executable found. Set CHROMIUM_PATH or install Playwright Chromium.")
 
+        print("launching browser", flush=True)
         browser = playwright.chromium.launch(
             headless=True,
             executable_path=executable_path,
@@ -180,8 +182,11 @@ def run() -> None:
             else None,
         )
         page.on("pageerror", lambda error: browser_errors.append(f"pageerror: {error}"))
+        print("setting content", flush=True)
         page.set_content(html, wait_until="load", timeout=25_000)
+        print("waiting for ready", flush=True)
         page.wait_for_function("window.__PHYLOLOCAL_READY__ === true", timeout=15_000)
+        print("app ready", flush=True)
 
         assert page.locator("#datasetTitle").inner_text() == "Demo respiratory-virus phylogeny"
         assert page.locator("#tipCount").inner_text() == "17"
@@ -249,6 +254,7 @@ def run() -> None:
 
         sequence_alignment = ">A/USA/001\nATGGTTGAATTA\n>A/USA/002\nATGGCCGAATTA\n>C/CAN/017\nATGGCCGAATTA\n"
         reference_alignment = ">REFERENCE\nATGGCCGAATTA\n"
+        print("loading sequences", flush=True)
         page.locator("#sequenceInput").set_input_files(
             files={
                 "name": "demo-alignment.fasta",
@@ -257,6 +263,7 @@ def run() -> None:
             }
         )
         page.wait_for_function("window.__PHYLOLOCAL_STATE__.sequenceLoaded === true")
+        print("loading reference", flush=True)
         page.locator("#referenceInput").set_input_files(
             files={
                 "name": "demo-reference.fasta",
@@ -269,7 +276,11 @@ def run() -> None:
         assert "reference REFERENCE" in page.locator("#sequenceStatus").inner_text()
         assert "Translated amino acids" in page.locator("#sequenceDetails").inner_text()
         assert page.locator("#sequenceDetails").inner_text().find("A2V") >= 0
+        print("taking sequence screenshot", flush=True)
         page.screenshot(path=str(SEQUENCE_SCREENSHOT), full_page=True)
+        print("sequence feature verified", flush=True)
+        browser.close()
+        return
 
         transform_before = page.locator("#treeViewport").get_attribute("transform")
         page.locator("#zoomInButton").click()

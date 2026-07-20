@@ -100,6 +100,51 @@
           <div class="field-hint" id="colorStatus">Colors appear on horizontal branches and tip markers.</div>
         </section>
 
+        <section class="panel-section sequence-section" aria-labelledby="sequenceHeading">
+          <div class="section-heading compact">
+            <span class="step-number">4</span>
+            <div>
+              <h2 id="sequenceHeading">Sequence explorer</h2>
+              <p>Load aligned FASTA to translate DNA and compare a selected node against a reference.</p>
+            </div>
+          </div>
+
+          <label class="field-label" for="sequenceInput">Sequence alignment FASTA</label>
+          <label class="secondary-button file-button full-width" for="sequenceInput">Choose alignment file</label>
+          <input id="sequenceInput" class="hidden-file-input" type="file" accept=".fa,.fasta,.fas,.faa,.txt,text/plain" />
+
+          <label class="field-label" for="referenceInput">Reference FASTA (optional)</label>
+          <label class="secondary-button file-button full-width" for="referenceInput">Choose reference file</label>
+          <input id="referenceInput" class="hidden-file-input" type="file" accept=".fa,.fasta,.fas,.faa,.txt,text/plain" />
+
+          <div class="control-grid">
+            <div>
+              <label class="field-label" for="sequenceCompareMode">Compare as</label>
+              <select id="sequenceCompareMode">
+                <option value="amino-acid" selected>Translate to amino acids</option>
+                <option value="raw">Raw sequence</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="sequenceFrameSelect">Frame</label>
+              <select id="sequenceFrameSelect">
+                <option value="1" selected>Frame 1</option>
+                <option value="2">Frame 2</option>
+                <option value="3">Frame 3</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="field-label" for="sequenceReferenceMode">Reference source</label>
+          <select id="sequenceReferenceMode">
+            <option value="reference" selected>Loaded reference</option>
+            <option value="parent">Parent node</option>
+            <option value="root">Tree root</option>
+          </select>
+          <button class="secondary-button full-width" id="useSelectedReferenceButton" type="button">Use selected sequence as reference</button>
+          <div class="field-hint" id="sequenceStatus">Load a FASTA file to see translated differences and branch mutations locally.</div>
+        </section>
+
         <section class="panel-section legend-section" aria-labelledby="legendHeading">
           <div class="section-heading compact">
             <span class="step-number">3</span>
@@ -161,6 +206,14 @@
             <p>Select a node or tip in the tree.</p>
           </div>
         </div>
+
+        <section class="sequence-detail-section" aria-labelledby="sequenceDetailHeading">
+          <p class="eyebrow">SEQUENCE EXPLORER</p>
+          <h2 id="sequenceDetailHeading">Sequence comparison</h2>
+          <div id="sequenceDetails" class="sequence-details">
+            <p class="muted-copy">Load an alignment and a reference to see translated differences for the selected node.</p>
+          </div>
+        </section>
       </aside>
     </div>
 
