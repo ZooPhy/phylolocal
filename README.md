@@ -125,3 +125,4 @@ The optional browser test requires Python Playwright and Chromium. Set `CHROMIUM
 Project code is MIT licensed. Vendored D3 modules use the ISC license; see `THIRD_PARTY_NOTICES.md`.
 
 Matched-sample search selects and highlights shared samples independently of the candidate threshold.
+
