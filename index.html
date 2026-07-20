@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#111827" />
+    <title>PhyloLocal</title>
+    <link rel="icon" type="image/png" href="./assets/phylolocal_icon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <img class="brand-logo" src="./assets/phylolocal_icon.png" alt="PhyloLocal logo" />
+      <div class="brand-copy">
+        <strong>PhyloLocal</strong>
+        <span>Client-side phylogenetic viewer</span>
+      </div>
+      <nav class="mode-switch" aria-label="PhyloLocal mode">
+        <button class="mode-button is-active" id="viewerModeButton" type="button" aria-pressed="true">Tree viewer</button>
+        <button class="mode-button" id="radarModeButton" type="button" aria-pressed="false">
+          Reassortment Radar <span class="new-badge">NEW</span>
+        </button>
+      </nav>
+      <div class="local-badge" title="Files are read by this browser tab and are not uploaded.">
+        <span class="local-dot" aria-hidden="true"></span>
+        Local-only data
+      </div>
+    </header>
+
+    <div class="app-shell app-mode-panel" id="viewerApp">
+      <aside class="control-panel" aria-label="Dataset and view controls">
+        <section class="panel-section">
+          <div class="section-heading">
+            <span class="step-number">1</span>
+            <div>
+              <h2>Load a dataset</h2>
+              <p>Auspice v2 JSON or Newick</p>
+            </div>
+          </div>
+
+          <label class="drop-zone" id="dropZone" for="fileInput">
+            <span class="drop-icon" aria-hidden="true">⇩</span>
+            <strong>Drop JSON or Newick here</strong>
+            <span>or choose a local file</span>
+            <input id="fileInput" type="file" accept=".json,.nwk,.newick,.tree,.tre,application/json,text/plain" />
+          </label>
+          <button class="secondary-button full-width" id="demoButton" type="button">Reload bundled demo</button>
+          <p class="privacy-note">The file is parsed in memory. This app has no upload endpoint.</p>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-heading compact">
+            <span class="step-number">2</span>
+            <div><h2>Explore</h2></div>
+          </div>
+
+          <label class="field-label" for="searchInput">Find tips</label>
+          <div class="search-field" id="searchField">
+            <span aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search" placeholder="Sample name…" autocomplete="off" />
+            <button class="clear-search-button" id="clearSearchButton" type="button" hidden>Clear</button>
+          </div>
+          <div class="field-hint" id="searchStatus">Type to highlight matching tips.</div>
+
+          <label class="field-label" for="axisSelect">Horizontal axis</label>
+          <select id="axisSelect">
+            <option value="divergence">Divergence</option>
+            <option value="date">Numeric date</option>
+            <option value="depth">Branch depth</option>
+          </select>
+
+          <div class="control-grid">
+            <div>
+              <label class="field-label" for="viewSelect">Tree view</label>
+              <select id="viewSelect">
+                <option value="rooted">Rooted</option>
+                <option value="unrooted">Unrooted</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="orderSelect">Tip order</label>
+              <select id="orderSelect">
+                <option value="input">Input order</option>
+                <option value="increasing">Increasing clade size</option>
+                <option value="decreasing">Decreasing clade size</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-hint">Ordering ladderizes sibling clades without changing topology.</div>
+
+          <label class="field-label" for="colorSelect">Color by</label>
+          <select id="colorSelect">
+            <option value="">No coloring</option>
+          </select>
+          <div class="field-hint" id="colorStatus">Colors appear on horizontal branches and tip markers.</div>
+        </section>
+
+        <section class="panel-section legend-section" aria-labelledby="legendHeading">
+          <div class="section-heading compact">
+            <span class="step-number">3</span>
+            <div><h2 id="legendHeading">Legend</h2></div>
+          </div>
+          <div id="legend" class="legend-list"><p class="muted-copy">Choose a metadata field.</p></div>
+        </section>
+
+        <section class="panel-section diagnostics-section" id="diagnosticsSection" hidden>
+          <h2>Dataset notes</h2>
+          <ul id="diagnosticsList"></ul>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <div class="dataset-header">
+          <div>
+            <p class="eyebrow">CURRENT DATASET</p>
+            <h1 id="datasetTitle">Loading demo…</h1>
+          </div>
+          <div class="dataset-metrics" aria-live="polite">
+            <div><strong id="tipCount">—</strong><span>tips</span></div>
+            <div><strong id="nodeCount">—</strong><span>nodes</span></div>
+            <div><strong id="axisMetric">—</strong><span>axis</span></div>
+          </div>
+        </div>
+
+        <div class="tree-stage" id="treeStage">
+          <div class="view-toolbar" aria-label="Tree view controls">
+            <button id="zoomOutButton" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+            <button id="zoomInButton" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+            <button id="resetButton" type="button" title="Fit tree to view">Fit</button>
+            <button id="exportButton" type="button" title="Export the current view as SVG">SVG</button>
+          </div>
+          <svg id="treeSvg" role="img" aria-labelledby="treeTitle treeDescription">
+            <title id="treeTitle">Phylogenetic tree</title>
+            <desc id="treeDescription">An interactive rooted or unrooted phylogenetic tree. Pan by dragging and zoom with the mouse wheel.</desc>
+            <rect class="canvas-background" x="0" y="0" width="100%" height="100%"></rect>
+            <g id="treeViewport"></g>
+          </svg>
+          <div class="interaction-hint">Scroll to zoom · drag to pan · select a node for details</div>
+          <div class="drop-overlay" id="dropOverlay" hidden>Drop an Auspice JSON or Newick file</div>
+        </div>
+
+        <div class="status-strip" id="statusStrip" role="status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="statusText">Initializing local viewer…</span>
+        </div>
+      </main>
+
+      <aside class="details-panel" aria-labelledby="detailsHeading">
+        <div class="details-header">
+          <p class="eyebrow">SELECTION</p>
+          <h2 id="detailsHeading">Node details</h2>
+        </div>
+        <div id="nodeDetails" class="node-details">
+          <div class="empty-details">
+            <div class="empty-details-icon" aria-hidden="true">◎</div>
+            <p>Select a node or tip in the tree.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="radar-shell app-mode-panel" id="radarApp" hidden>
+      <aside class="radar-control-panel" aria-label="Reassortment Radar controls">
+        <section class="panel-section radar-intro">
+          <div class="section-heading">
+            <span class="step-number">1</span>
+            <div>
+              <h2>Load segment trees</h2>
+              <p>Match tips by exact sample name</p>
+            </div>
+          </div>
+
+          <label class="radar-file-slot" id="radarDropA" for="radarFileA">
+            <span class="segment-letter tree-a-accent">A</span>
+            <span class="radar-file-copy">
+              <strong>First segment tree</strong>
+              <span id="radarFileNameA">Choose Newick or Auspice JSON</span>
+            </span>
+            <span class="slot-action">Choose</span>
+            <input id="radarFileA" type="file" accept=".json,.nwk,.newick,.tree,.tre,application/json,text/plain" />
+          </label>
+
+          <label class="radar-file-slot" id="radarDropB" for="radarFileB">
+            <span class="segment-letter tree-b-accent">B</span>
+            <span class="radar-file-copy">
+              <strong>Second segment tree</strong>
+              <span id="radarFileNameB">Choose Newick or Auspice JSON</span>
+            </span>
+            <span class="slot-action">Choose</span>
+            <input id="radarFileB" type="file" accept=".json,.nwk,.newick,.tree,.tre,application/json,text/plain" />
+          </label>
+
+          <button class="secondary-button full-width" id="radarDemoButton" type="button">Load discordant demo pair</button>
+          <p class="privacy-note">Both trees and all calculations remain in this browser tab.</p>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-heading compact">
+            <span class="step-number">2</span>
+            <div><h2>Detection settings</h2></div>
+          </div>
+
+          <label class="field-label" for="radarKSelect">Nearest neighbors per tip</label>
+          <select id="radarKSelect">
+            <option value="3">3 neighbors</option>
+            <option value="5" selected>5 neighbors</option>
+            <option value="10">10 neighbors</option>
+            <option value="20">20 neighbors</option>
+          </select>
+          <div class="field-hint" id="radarMethodNote">Neighborhoods are compared between the two trees.</div>
+
+          <div class="range-label-row">
+            <label class="field-label" for="radarThreshold">Candidate threshold</label>
+            <strong id="radarThresholdValue">50%</strong>
+          </div>
+          <input class="score-range" id="radarThreshold" type="range" min="0" max="1" step="0.05" value="0.5" />
+          <div class="score-scale"><span>Concordant</span><span>Highly discordant</span></div>
+
+          <label class="field-label" for="radarCandidateSearch">Find a matched sample</label>
+          <div class="search-field" id="radarSearchField">
+            <span aria-hidden="true">⌕</span>
+            <input id="radarCandidateSearch" type="search" placeholder="Sample name…" autocomplete="off" />
+            <button class="clear-search-button" id="radarClearSearchButton" type="button" hidden>Clear</button>
+          </div>
+          <div class="field-hint" id="radarSearchStatus">Type a sample name to select and highlight it in both trees.</div>
+        </section>
+
+        <section class="panel-section radar-explanation">
+          <div class="section-heading compact">
+            <span class="step-number">3</span>
+            <div><h2>Interpretation</h2></div>
+          </div>
+          <p class="muted-copy">A score near 0 means a sample keeps similar nearest neighbors. A score near 1 means its local phylogenetic neighborhood changes strongly between segment trees.</p>
+          <div class="radar-color-key">
+            <span><i class="key-low"></i>Low</span>
+            <span><i class="key-mid"></i>Moderate</span>
+            <span><i class="key-high"></i>High</span>
+          </div>
+        </section>
+      </aside>
+
+      <main class="radar-workspace">
+        <div class="dataset-header radar-header">
+          <div>
+            <p class="eyebrow">REASSORTMENT RADAR</p>
+            <h1>Candidate phylogenetic discordance</h1>
+          </div>
+          <div class="dataset-metrics radar-metrics" aria-live="polite">
+            <div><strong id="radarCommonCount">—</strong><span>shared tips</span></div>
+            <div><strong id="radarCandidateCount">—</strong><span>candidates</span></div>
+            <div><strong id="radarMeanScore">—</strong><span>mean score</span></div>
+          </div>
+        </div>
+
+        <div class="tree-stage radar-stage" id="radarStage">
+          <div class="view-toolbar" aria-label="Radar controls">
+            <button id="radarFitButton" type="button" title="Fit both trees">Fit</button>
+            <button id="radarExportCsvButton" type="button" title="Export all discordance scores as CSV">CSV</button>
+          </div>
+          <svg id="radarSvg" role="img" aria-label="Two segment trees connected by matched tips and colored by neighborhood discordance">
+            <rect class="canvas-background" x="0" y="0" width="100%" height="100%"></rect>
+            <g id="radarViewport"></g>
+          </svg>
+          <div class="interaction-hint">Connector crossings show placement changes · select a connector, tip, or ranked sample</div>
+        </div>
+
+        <div class="status-strip" id="radarStatusStrip" role="status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="radarStatusText">Initializing Reassortment Radar…</span>
+        </div>
+      </main>
+
+      <aside class="radar-results-panel" aria-label="Ranked discordance candidates">
+        <div class="radar-results-heading">
+          <p class="eyebrow">RANKED RESULTS</p>
+          <h2>Top candidates</h2>
+          <p>Click a sample to highlight its clade jump and compare nearest neighbors.</p>
+        </div>
+        <div id="radarCandidateList" class="candidate-list"></div>
+        <div class="radar-detail-section">
+          <p class="eyebrow">SELECTED SAMPLE</p>
+          <div id="radarCandidateDetails" class="node-details">
+            <div class="empty-details">
+              <div class="empty-details-icon" aria-hidden="true">⌁</div>
+              <p>Select a ranked sample to compare its neighborhoods.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <noscript>This viewer requires JavaScript, but it does not require a remote server or account.</noscript>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

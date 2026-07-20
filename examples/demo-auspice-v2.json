@@ -1,0 +1,626 @@
+{
+  "version": "v2",
+  "meta": {
+    "title": "Demo respiratory-virus phylogeny",
+    "updated": "2026-07-17",
+    "panels": [
+      "tree"
+    ],
+    "description": "Synthetic data bundled with the local viewer. It contains no real samples.",
+    "colorings": [
+      {
+        "key": "region",
+        "title": "Region",
+        "type": "categorical"
+      },
+      {
+        "key": "country",
+        "title": "Country",
+        "type": "categorical"
+      },
+      {
+        "key": "clade",
+        "title": "Clade",
+        "type": "categorical"
+      },
+      {
+        "key": "host",
+        "title": "Host",
+        "type": "categorical"
+      }
+    ],
+    "filters": [
+      "region",
+      "country",
+      "clade",
+      "host"
+    ]
+  },
+  "tree": {
+    "name": "ROOT",
+    "node_attrs": {
+      "div": 0,
+      "num_date": {
+        "value": 2020
+      },
+      "region": {
+        "value": "Global"
+      },
+      "country": {
+        "value": "Multiple"
+      },
+      "clade": {
+        "value": "Root"
+      },
+      "host": {
+        "value": "Human"
+      }
+    },
+    "children": [
+      {
+        "name": "NODE_A",
+        "node_attrs": {
+          "div": 0.1,
+          "num_date": {
+            "value": 2020.25
+          },
+          "region": {
+            "value": "Americas"
+          },
+          "country": {
+            "value": "Multiple"
+          },
+          "clade": {
+            "value": "A"
+          },
+          "host": {
+            "value": "Human"
+          }
+        },
+        "children": [
+          {
+            "name": "NODE_A1",
+            "node_attrs": {
+              "div": 0.24,
+              "num_date": {
+                "value": 2020.75
+              },
+              "region": {
+                "value": "North America"
+              },
+              "country": {
+                "value": "Multiple"
+              },
+              "clade": {
+                "value": "A.1"
+              },
+              "host": {
+                "value": "Human"
+              }
+            },
+            "children": [
+              {
+                "name": "A/USA/001",
+                "node_attrs": {
+                  "div": 0.42,
+                  "num_date": {
+                    "value": 2021.12
+                  },
+                  "region": {
+                    "value": "North America"
+                  },
+                  "country": {
+                    "value": "USA"
+                  },
+                  "clade": {
+                    "value": "A.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "A/USA/002",
+                "node_attrs": {
+                  "div": 0.48,
+                  "num_date": {
+                    "value": 2021.44
+                  },
+                  "region": {
+                    "value": "North America"
+                  },
+                  "country": {
+                    "value": "USA"
+                  },
+                  "clade": {
+                    "value": "A.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "A/MEX/003",
+                "node_attrs": {
+                  "div": 0.52,
+                  "num_date": {
+                    "value": 2021.83
+                  },
+                  "region": {
+                    "value": "North America"
+                  },
+                  "country": {
+                    "value": "Mexico"
+                  },
+                  "clade": {
+                    "value": "A.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "NODE_A2",
+            "node_attrs": {
+              "div": 0.31,
+              "num_date": {
+                "value": 2021.05
+              },
+              "region": {
+                "value": "South America"
+              },
+              "country": {
+                "value": "Multiple"
+              },
+              "clade": {
+                "value": "A.2"
+              },
+              "host": {
+                "value": "Human"
+              }
+            },
+            "children": [
+              {
+                "name": "A/BRA/004",
+                "node_attrs": {
+                  "div": 0.59,
+                  "num_date": {
+                    "value": 2022.14
+                  },
+                  "region": {
+                    "value": "South America"
+                  },
+                  "country": {
+                    "value": "Brazil"
+                  },
+                  "clade": {
+                    "value": "A.2"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "A/CHL/005",
+                "node_attrs": {
+                  "div": 0.63,
+                  "num_date": {
+                    "value": 2022.48
+                  },
+                  "region": {
+                    "value": "South America"
+                  },
+                  "country": {
+                    "value": "Chile"
+                  },
+                  "clade": {
+                    "value": "A.2"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "NODE_B",
+        "node_attrs": {
+          "div": 0.15,
+          "num_date": {
+            "value": 2020.42
+          },
+          "region": {
+            "value": "Multiple"
+          },
+          "country": {
+            "value": "Multiple"
+          },
+          "clade": {
+            "value": "B"
+          },
+          "host": {
+            "value": "Human"
+          }
+        },
+        "children": [
+          {
+            "name": "NODE_B1",
+            "node_attrs": {
+              "div": 0.39,
+              "num_date": {
+                "value": 2021.18
+              },
+              "region": {
+                "value": "Europe"
+              },
+              "country": {
+                "value": "Multiple"
+              },
+              "clade": {
+                "value": "B.1"
+              },
+              "host": {
+                "value": "Human"
+              }
+            },
+            "children": [
+              {
+                "name": "B/FRA/006",
+                "node_attrs": {
+                  "div": 0.67,
+                  "num_date": {
+                    "value": 2022.31
+                  },
+                  "region": {
+                    "value": "Europe"
+                  },
+                  "country": {
+                    "value": "France"
+                  },
+                  "clade": {
+                    "value": "B.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "B/DEU/007",
+                "node_attrs": {
+                  "div": 0.7,
+                  "num_date": {
+                    "value": 2022.66
+                  },
+                  "region": {
+                    "value": "Europe"
+                  },
+                  "country": {
+                    "value": "Germany"
+                  },
+                  "clade": {
+                    "value": "B.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "B/GBR/008",
+                "node_attrs": {
+                  "div": 0.76,
+                  "num_date": {
+                    "value": 2023.02
+                  },
+                  "region": {
+                    "value": "Europe"
+                  },
+                  "country": {
+                    "value": "United Kingdom"
+                  },
+                  "clade": {
+                    "value": "B.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "NODE_B2",
+            "node_attrs": {
+              "div": 0.45,
+              "num_date": {
+                "value": 2021.52
+              },
+              "region": {
+                "value": "Africa"
+              },
+              "country": {
+                "value": "Multiple"
+              },
+              "clade": {
+                "value": "B.2"
+              },
+              "host": {
+                "value": "Human"
+              }
+            },
+            "children": [
+              {
+                "name": "B/KEN/009",
+                "node_attrs": {
+                  "div": 0.73,
+                  "num_date": {
+                    "value": 2022.72
+                  },
+                  "region": {
+                    "value": "Africa"
+                  },
+                  "country": {
+                    "value": "Kenya"
+                  },
+                  "clade": {
+                    "value": "B.2"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "B/ZAF/010",
+                "node_attrs": {
+                  "div": 0.82,
+                  "num_date": {
+                    "value": 2023.2
+                  },
+                  "region": {
+                    "value": "Africa"
+                  },
+                  "country": {
+                    "value": "South Africa"
+                  },
+                  "clade": {
+                    "value": "B.2"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "B/NGA/011",
+                "node_attrs": {
+                  "div": 0.88,
+                  "num_date": {
+                    "value": 2023.57
+                  },
+                  "region": {
+                    "value": "Africa"
+                  },
+                  "country": {
+                    "value": "Nigeria"
+                  },
+                  "clade": {
+                    "value": "B.2"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "NODE_C",
+        "node_attrs": {
+          "div": 0.22,
+          "num_date": {
+            "value": 2021
+          },
+          "region": {
+            "value": "Asia-Pacific"
+          },
+          "country": {
+            "value": "Multiple"
+          },
+          "clade": {
+            "value": "C"
+          },
+          "host": {
+            "value": "Human"
+          }
+        },
+        "children": [
+          {
+            "name": "NODE_C1",
+            "node_attrs": {
+              "div": 0.54,
+              "num_date": {
+                "value": 2021.94
+              },
+              "region": {
+                "value": "Asia-Pacific"
+              },
+              "country": {
+                "value": "Multiple"
+              },
+              "clade": {
+                "value": "C.1"
+              },
+              "host": {
+                "value": "Human"
+              }
+            },
+            "children": [
+              {
+                "name": "C/JPN/012",
+                "node_attrs": {
+                  "div": 0.86,
+                  "num_date": {
+                    "value": 2023.34
+                  },
+                  "region": {
+                    "value": "Asia-Pacific"
+                  },
+                  "country": {
+                    "value": "Japan"
+                  },
+                  "clade": {
+                    "value": "C.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "C/KOR/013",
+                "node_attrs": {
+                  "div": 0.91,
+                  "num_date": {
+                    "value": 2023.62
+                  },
+                  "region": {
+                    "value": "Asia-Pacific"
+                  },
+                  "country": {
+                    "value": "South Korea"
+                  },
+                  "clade": {
+                    "value": "C.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "C/AUS/014",
+                "node_attrs": {
+                  "div": 0.95,
+                  "num_date": {
+                    "value": 2023.91
+                  },
+                  "region": {
+                    "value": "Oceania"
+                  },
+                  "country": {
+                    "value": "Australia"
+                  },
+                  "clade": {
+                    "value": "C.1"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "NODE_C2",
+            "node_attrs": {
+              "div": 0.6,
+              "num_date": {
+                "value": 2022.38
+              },
+              "region": {
+                "value": "Multiple"
+              },
+              "country": {
+                "value": "Multiple"
+              },
+              "clade": {
+                "value": "C.2"
+              },
+              "host": {
+                "value": "Human"
+              }
+            },
+            "children": [
+              {
+                "name": "C/IND/015",
+                "node_attrs": {
+                  "div": 0.96,
+                  "num_date": {
+                    "value": 2024.12
+                  },
+                  "region": {
+                    "value": "Asia-Pacific"
+                  },
+                  "country": {
+                    "value": "India"
+                  },
+                  "clade": {
+                    "value": "C.2"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "C/SGP/016",
+                "node_attrs": {
+                  "div": 1.02,
+                  "num_date": {
+                    "value": 2024.38
+                  },
+                  "region": {
+                    "value": "Asia-Pacific"
+                  },
+                  "country": {
+                    "value": "Singapore"
+                  },
+                  "clade": {
+                    "value": "C.2"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              },
+              {
+                "name": "C/CAN/017",
+                "node_attrs": {
+                  "div": 1.08,
+                  "num_date": {
+                    "value": 2024.61
+                  },
+                  "region": {
+                    "value": "North America"
+                  },
+                  "country": {
+                    "value": "Canada"
+                  },
+                  "clade": {
+                    "value": "C.2"
+                  },
+                  "host": {
+                    "value": "Human"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
